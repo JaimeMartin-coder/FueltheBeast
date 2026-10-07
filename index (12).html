@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fuel the Beast: Food Label Challenge</title>
+<style>
+:root{
+  --spruce:#1d3b34; --snow:#f4f7f5; --ember:#e0612a; --sun:#f3b73a; --leaf:#2f7d46; --berry:#8e3b63;
+  --ink:#15211e; --sky:#d3e8ee; --line:#c9d6d1; --card:#ffffff; --mute:#4d5f59;
+  --fat:#fff0c2; --fatInk:#6b4b00; --carb:#dcf0e0; --carbInk:#17512c; --pro:#f6dcea; --proInk:#7a2a52;
+  --nuc:#e3e0f5; --nucInk:#40377a;
+  --good:#17512c; --goodBg:#e3f4e7; --bad:#8a2b12; --badBg:#fdebe4;
+  color-scheme: light;
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--snow);color:var(--ink);font-family:"Segoe UI","Helvetica Neue",Arial,sans-serif;font-size:17px;line-height:1.5;
+  padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+h1,h2,h3{font-family:Rockwell,"Roboto Slab","Rockwell Nova",Georgia,serif;line-height:1.15;margin:0 0 .4em}
+h1{font-size:2rem} h2{font-size:1.55rem} h3{font-size:1.2rem}
+p{margin:0 0 .8em}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--ember);outline-offset:2px}
+.ico{width:56px;height:56px;display:block}
+
+/* header */
+.top{background:var(--spruce);color:#fff;padding:12px 18px;display:flex;flex-wrap:wrap;gap:10px 24px;align-items:center;justify-content:space-between}
+.brand{display:flex;align-items:center;gap:10px}
+.brand svg{width:38px;height:38px}
+.brand b{font-family:Rockwell,"Roboto Slab",Georgia,serif;font-size:1.3rem}
+.prog{min-width:220px;flex:1;max-width:420px}
+.prog small{display:block;color:#cfe3dc;font-size:.82rem;margin-bottom:3px}
+.bar{height:10px;border-radius:6px;background:#2f574d;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--sun);transition:width .4s}
+
+main{max-width:1040px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:18px}
+.row2{display:grid;grid-template-columns:minmax(250px,320px) 1fr;gap:20px;align-items:start}
+@media(max-width:760px){.row2{grid-template-columns:1fr}}
+
+/* hero */
+.hero{background:var(--spruce);color:#fff;border-radius:18px;padding:26px 22px;margin-bottom:20px}
+.hero p{color:#dcebe6;max-width:60ch}
+.cast{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:18px}
+.who{background:#fff;color:var(--ink);border-radius:14px;padding:10px;text-align:center}
+.who .pic{background:var(--sky);border-radius:50%;width:104px;height:104px;margin:0 auto 6px;overflow:hidden}
+.who .pic svg{width:100%;height:100%}
+.who b{display:block;font-size:.98rem}
+.who span{font-size:.86rem;color:var(--mute);display:block;line-height:1.3}
+.startrow{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin-top:20px}
+.field label{display:block;font-size:.85rem;color:#cfe3dc}
+.field input{font:inherit;padding:8px 10px;border-radius:8px;border:2px solid #4b7266;background:#fff;color:var(--ink);width:150px}
+.note{font-size:.84rem;color:#b9d3ca;margin-top:8px}
+
+.btn{background:var(--ember);color:#fff;border:0;border-radius:10px;padding:11px 20px;font-weight:700;font-size:1rem}
+.btn:hover{filter:brightness(1.08)}
+.btn.alt{background:#fff;color:var(--spruce);border:2px solid var(--spruce)}
+.btn.small{padding:7px 12px;font-size:.9rem}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.ghost{background:transparent;border:2px solid var(--line);color:var(--ink);border-radius:10px;padding:6px 12px;font-size:.9rem}
+.ghost:hover{border-color:var(--spruce)}
+
+/* stage map */
+.stages{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.stage{display:flex;flex-direction:column;gap:8px}
+.stage .tag{align-self:flex-start;font-size:.85rem;font-weight:700;padding:2px 10px;border-radius:20px;background:var(--sky)}
+.stage.done .tag{background:var(--goodBg);color:var(--good)}
+.stage p{color:var(--mute);margin:0;flex:1}
+.stage svg.ico{width:64px;height:64px}
+.iconrow{display:flex;gap:6px}
+
+/* nutrition label */
+.nf{background:#fff;color:#000;border:2px solid #000;padding:6px 9px 8px;font-family:"Helvetica Neue",Arial,sans-serif;max-width:310px;width:100%;font-size:.93rem;line-height:1.3}
+.nf h4{font-size:1.85rem;font-weight:900;margin:0;line-height:1;letter-spacing:-.5px;padding-bottom:2px;border-bottom:1px solid #000}
+.nf .sv{padding:3px 0;border-bottom:1px solid #000}
+.nf .cal{display:flex;justify-content:space-between;align-items:flex-end;border-top:8px solid #000;border-bottom:4px solid #000;padding:2px 0}
+.nf .cal span{font-weight:900;font-size:1.25rem}
+.nf .cal b{font-size:2rem;font-weight:900;line-height:1}
+.nf .r{display:flex;justify-content:space-between;border-top:1px solid #000;padding:2px 4px;gap:8px}
+.nf .r.sub{padding-left:22px}
+.nf .r.ital span:first-child{font-style:italic}
+.nf .r b{font-weight:800}
+.nf .r.mac.fat{background:var(--fat)} .nf .r.mac.carb{background:var(--carb)} .nf .r.mac.pro{background:var(--pro)}
+.nf .r.det{background:#e6f1f5}
+.nf .r.click{cursor:pointer}
+.nf .r.click:hover{outline:3px solid var(--ember);outline-offset:-3px}
+.nf .r.picked{outline:3px solid var(--ember);outline-offset:-3px}
+.nf .r.wrong{background:var(--badBg)}
+.nf .r.right{outline:3px solid var(--leaf);outline-offset:-3px}
+.nf .fine{font-size:.74rem;border-top:4px solid #000;margin-top:3px;padding-top:3px}
+.foodhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.foodhead .ico{width:54px;height:54px}
+.foodhead b{font-family:Rockwell,"Roboto Slab",Georgia,serif;font-size:1.1rem;line-height:1.15}
+.foodhead small{display:block;color:var(--mute);font-size:.82rem}
+.legend{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 0;font-size:.82rem}
+.legend span{padding:1px 8px;border-radius:12px;border:1px solid #0003}
+.legend .fat{background:var(--fat)} .legend .carb{background:var(--carb)} .legend .pro{background:var(--pro)} .legend .det{background:#e6f1f5}
+
+/* question panel */
+.q{font-size:1.15rem;font-weight:700;margin-bottom:12px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;width:100%;background:#fff;border:2px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--ink)}
+.opt:hover:not([disabled]){border-color:var(--spruce)}
+.opt small{display:block;color:var(--mute);font-size:.84rem;font-weight:400}
+.opt b{font-size:1.02rem}
+.opt.fat{border-left:10px solid var(--sun)} .opt.carb{border-left:10px solid var(--leaf)} .opt.pro{border-left:10px solid var(--berry)} .opt.nuc{border-left:10px solid #6a5acd}
+.opt.plain{border-left:2px solid var(--line)}
+.opt.no{background:var(--badBg);border-color:#e3a58f;color:#6a2210;opacity:.8}
+.opt.yes{background:var(--goodBg);border-color:var(--leaf)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:12px;display:none}
+.fb.show{display:block}
+.fb.good{background:var(--goodBg);color:#10381f;border:2px solid #9bd3a9}
+.fb.bad{background:var(--badBg);color:#5a1d0c;border:2px solid #efb7a4}
+.fb.info{background:#e7f2f6;color:#0f3340;border:2px solid #b5d6e0}
+.fb b{font-weight:800}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 0}
+.numin{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.numin input{font:inherit;font-size:1.2rem;width:130px;padding:8px 10px;border:2px solid var(--line);border-radius:10px}
+.numin span{font-weight:700}
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:12px 0}
+.pickcard{background:#fff;border:3px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:10px;align-items:center}
+.pickcard.no{border-color:#e3a58f;background:#fff8f5}
+.pickcard.yes{border-color:var(--leaf);background:#f3fbf5}
+.pickcard .foodhead{align-self:stretch}
+.pickcard .btn{width:100%}
+.letter{background:var(--spruce);color:#fff;border-radius:8px;padding:0 9px;font-weight:800;font-family:Rockwell,Georgia,serif}
+
+.client{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center;background:var(--sky);border-radius:16px;padding:14px;margin-bottom:16px}
+.client .pic{background:#fff;border-radius:50%;width:150px;height:150px;overflow:hidden}
+.client .pic svg{width:100%;height:100%}
+.client p{margin:0 0 6px}
+.client h2{margin-bottom:.15em}
+@media(max-width:560px){.client{grid-template-columns:1fr;text-align:center}.client .pic{margin:0 auto}}
+.stepline{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.stepline span{font-size:.88rem;font-weight:700;padding:3px 12px;border-radius:20px;background:#e8eeeb;color:var(--mute)}
+.stepline span.on{background:var(--spruce);color:#fff}
+.stepline span.ok{background:var(--goodBg);color:var(--good)}
+
+/* summary */
+.sumgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin:14px 0}
+.stat{background:#fff;border:2px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.stat big{display:block;font-family:Rockwell,Georgia,serif;font-size:2.1rem;line-height:1.1}
+.rank{background:var(--spruce);color:#fff;border-radius:16px;padding:20px;text-align:center}
+.rank .pic{width:130px;height:130px;margin:0 auto 6px;background:#fff;border-radius:50%;overflow:hidden}
+.rank .pic svg{width:100%;height:100%}
+
+#tip{position:fixed;z-index:50;max-width:280px;background:var(--ink);color:#fff;padding:9px 12px;border-radius:10px;font-size:.92rem;line-height:1.35;display:none;box-shadow:0 4px 14px #0004}
+#tip b{color:var(--sun)}
+.hint{font-size:.88rem;color:var(--mute);margin-top:22px;text-align:center}
+.sr{position:absolute;left:-9999px}
+@media print{.top,.tools,.btn,.ghost,.hint{display:none!important}}
+
+/* calculator */
+#calcBtn{position:fixed;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:40;background:var(--spruce);color:#fff;border:3px solid #fff;border-radius:30px;padding:10px 18px;font-weight:700;box-shadow:0 4px 14px #0004;display:flex;align-items:center;gap:8px}
+#calcBtn svg{width:22px;height:22px}
+#calc{position:fixed;right:14px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:41;width:272px;max-width:calc(100vw - 28px);background:#fff;border:3px solid var(--spruce);border-radius:16px;padding:10px;box-shadow:0 8px 26px #0005;display:none}
+#calc.open{display:block}
+#calc .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-family:Rockwell,Georgia,serif;font-weight:700}
+#calc .ch button{background:transparent;border:2px solid var(--line);border-radius:8px;padding:2px 10px;font-size:.9rem}
+#cdisp{background:#eef3f1;border:2px solid var(--line);border-radius:10px;padding:6px 12px;text-align:right;font-size:1.9rem;font-weight:700;min-height:54px;overflow:hidden;white-space:nowrap;font-variant-numeric:tabular-nums}
+#cexp{font-size:.8rem;color:var(--mute);text-align:right;min-height:1.2em;margin:4px 4px 2px}
+#calc .keys{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:6px}
+#calc .keys button{font-size:1.25rem;font-weight:700;padding:11px 0;border-radius:10px;border:2px solid var(--line);background:#fff;color:var(--ink)}
+#calc .keys button:hover{border-color:var(--spruce)}
+#calc .keys .op{background:var(--sky)} #calc .keys .eq{background:var(--ember);color:#fff;border-color:var(--ember)} #calc .keys .cl{background:var(--badBg)}
+@media print{#calcBtn,#calc{display:none!important}}
+
+.showteacher{background:var(--ember);color:#fff;border:4px solid var(--ink);border-radius:14px;text-align:center;font-family:Rockwell,"Roboto Slab",Georgia,serif;font-weight:900;font-size:clamp(1.5rem,5vw,2.6rem);letter-spacing:1px;padding:16px 10px;margin-bottom:16px}
+#glitter{position:fixed;inset:0;z-index:79;pointer-events:none;width:100%;height:100%}
+</style>
+</head>
+<body>
+
+<!-- ============ SVG SPRITE: food icons + characters ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+<defs>
+<symbol id="i-pasta" viewBox="0 0 64 64"><path d="M6 32h52a26 26 0 0 1-52 0z" fill="#efe7d6" stroke="#15211e" stroke-width="2"/><path d="M12 32c4-12 9 4 13-8s9 8 13-6 9 8 13-2" fill="none" stroke="#f0c14b" stroke-width="5" stroke-linecap="round"/><circle cx="26" cy="22" r="4" fill="#d9442b"/><circle cx="40" cy="20" r="3" fill="#d9442b"/></symbol>
+<symbol id="i-chicken" viewBox="0 0 64 64"><ellipse cx="27" cy="26" rx="19" ry="14" transform="rotate(-30 27 26)" fill="#c9792f" stroke="#15211e" stroke-width="2"/><path d="M38 38 L53 53" stroke="#f6efe0" stroke-width="6" stroke-linecap="round"/><circle cx="53" cy="49" r="4.5" fill="#f6efe0"/><circle cx="57" cy="54" r="4.5" fill="#f6efe0"/><path d="M16 20c4-6 10-8 16-6" stroke="#e3a35e" stroke-width="3" fill="none" stroke-linecap="round"/></symbol>
+<symbol id="i-walnut" viewBox="0 0 64 64"><circle cx="32" cy="34" r="22" fill="#b07a45" stroke="#15211e" stroke-width="2"/><path d="M32 12c-7 9-7 14 0 22s7 13 0 22" fill="none" stroke="#6e4524" stroke-width="3"/><path d="M18 26c4 2 6 6 5 10M46 26c-4 2-6 6-5 10M20 44c3-1 6 0 8 3M44 44c-3-1-6 0-8 3" fill="none" stroke="#6e4524" stroke-width="2" stroke-linecap="round"/></symbol>
+<symbol id="i-banana" viewBox="0 0 64 64"><path d="M10 18c2 26 24 38 48 24-3 8-12 14-24 12C18 51 6 38 10 18z" fill="#f3d03e" stroke="#15211e" stroke-width="2" stroke-linejoin="round"/><path d="M10 18l-2-8 6 2z" fill="#6e4524"/><path d="M20 36c8 8 20 10 30 4" fill="none" stroke="#d9ac1e" stroke-width="2"/></symbol>
+<symbol id="i-avocado" viewBox="0 0 64 64"><path d="M32 4c11 0 15 15 15 25 0 15-8 29-15 29S17 44 17 29C17 19 21 4 32 4z" fill="#3a7a39" stroke="#15211e" stroke-width="2"/><path d="M32 11c8 0 11 11 11 19 0 12-6 22-11 22s-11-10-11-22c0-8 3-19 11-19z" fill="#dbe99c"/><circle cx="32" cy="38" r="9" fill="#8a5632" stroke="#5a351c" stroke-width="2"/></symbol>
+<symbol id="i-drink" viewBox="0 0 64 64"><rect x="23" y="14" width="18" height="46" rx="7" fill="#3aa3d6" stroke="#15211e" stroke-width="2"/><rect x="26" y="5" width="12" height="9" rx="2" fill="#1d3b34"/><rect x="23" y="28" width="18" height="16" fill="#fff"/><path d="M34 29l-5 8h4l-2 6 6-9h-4z" fill="#f3b73a"/></symbol>
+<symbol id="i-butter" viewBox="0 0 64 64"><polygon points="6,28 16,16 60,16 50,28" fill="#fbe9a0" stroke="#15211e" stroke-width="2" stroke-linejoin="round"/><rect x="6" y="28" width="44" height="24" rx="2" fill="#f6d86a" stroke="#15211e" stroke-width="2"/><polygon points="50,28 60,16 60,40 50,52" fill="#e6c24b" stroke="#15211e" stroke-width="2" stroke-linejoin="round"/><path d="M14 36h28" stroke="#d9ac1e" stroke-width="2"/></symbol>
+<symbol id="i-protein" viewBox="0 0 64 64"><rect x="13" y="17" width="38" height="42" rx="6" fill="#8e3b63" stroke="#15211e" stroke-width="2"/><rect x="11" y="9" width="42" height="10" rx="3" fill="#1d3b34"/><circle cx="32" cy="38" r="12" fill="#fff"/><text x="32" y="44" text-anchor="middle" font-size="17" font-weight="800" fill="#8e3b63" font-family="Arial,sans-serif">P</text></symbol>
+<symbol id="i-pb" viewBox="0 0 64 64"><rect x="15" y="16" width="34" height="42" rx="7" fill="#d9a25b" stroke="#15211e" stroke-width="2"/><rect x="13" y="7" width="38" height="11" rx="3" fill="#c0392b" stroke="#15211e" stroke-width="2"/><rect x="20" y="30" width="24" height="18" rx="3" fill="#fff"/><ellipse cx="32" cy="39" rx="7" ry="4.5" fill="#c58a45"/></symbol>
+<symbol id="i-bagel" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="#e2b36a" stroke="#15211e" stroke-width="2"/><circle cx="32" cy="32" r="9" fill="#f4f7f5" stroke="#15211e" stroke-width="2"/><g fill="#fff6dc"><ellipse cx="18" cy="24" rx="3" ry="1.6" transform="rotate(-30 18 24)"/><ellipse cx="30" cy="12" rx="3" ry="1.6"/><ellipse cx="46" cy="22" rx="3" ry="1.6" transform="rotate(30 46 22)"/><ellipse cx="50" cy="38" rx="3" ry="1.6" transform="rotate(70 50 38)"/><ellipse cx="38" cy="52" rx="3" ry="1.6"/><ellipse cx="16" cy="42" rx="3" ry="1.6" transform="rotate(50 16 42)"/></g></symbol>
+<symbol id="i-beans" viewBox="0 0 64 64"><path d="M6 34h52a26 24 0 0 1-52 0z" fill="#d9d3c4" stroke="#15211e" stroke-width="2"/><g fill="#3a2323" stroke="#15211e" stroke-width="1.5"><ellipse cx="20" cy="30" rx="8" ry="5" transform="rotate(-20 20 30)"/><ellipse cx="33" cy="25" rx="8" ry="5" transform="rotate(15 33 25)"/><ellipse cx="45" cy="30" rx="8" ry="5" transform="rotate(-10 45 30)"/><ellipse cx="32" cy="33" rx="8" ry="5" transform="rotate(5 32 33)"/></g></symbol>
+<symbol id="i-margarine" viewBox="0 0 64 64"><rect x="9" y="26" width="46" height="28" rx="6" fill="#f3b73a" stroke="#15211e" stroke-width="2"/><rect x="7" y="17" width="50" height="11" rx="4" fill="#fff" stroke="#15211e" stroke-width="2"/><ellipse cx="32" cy="40" rx="12" ry="6" fill="#fde8a2"/></symbol>
+<symbol id="i-cookie" viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="#c98a4b" stroke="#15211e" stroke-width="2"/><g fill="#4a2c17"><circle cx="22" cy="24" r="3.5"/><circle cx="40" cy="22" r="3"/><circle cx="32" cy="36" r="3.5"/><circle cx="46" cy="38" r="3"/><circle cx="20" cy="42" r="3"/><circle cx="34" cy="16" r="2.5"/></g></symbol>
+<symbol id="i-chips" viewBox="0 0 64 64"><path d="M8 30c4-16 22-20 32-10 8 8 4 20-6 22-12 2-28-2-26-12z" fill="#f2c14e" stroke="#15211e" stroke-width="2"/><path d="M32 42c8-14 24-14 26-2 2 10-10 16-20 14-6-1-8-6-6-12z" fill="#eab33a" stroke="#15211e" stroke-width="2"/><path d="M18 28c4-4 10-4 14 0" stroke="#c88f1a" stroke-width="2" fill="none"/></symbol>
+<symbol id="i-jerky" viewBox="0 0 64 64"><g stroke="#15211e" stroke-width="2" fill="#7a3b22"><rect x="6" y="16" width="46" height="10" rx="5" transform="rotate(-12 29 21)"/><rect x="10" y="30" width="48" height="10" rx="5" transform="rotate(6 34 35)"/><rect x="8" y="45" width="42" height="10" rx="5" transform="rotate(-6 29 50)"/></g></symbol>
+<symbol id="i-salmon" viewBox="0 0 64 64"><path d="M4 32c8-14 26-18 40-8l14-10v36L44 40C30 50 12 46 4 32z" fill="#f08a5d" stroke="#15211e" stroke-width="2" stroke-linejoin="round"/><path d="M16 26c3 4 3 10 0 14M25 24c3 5 3 12 0 17M34 25c3 4 3 10 0 14" fill="none" stroke="#f9c3a5" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="30" r="2.5" fill="#15211e"/><path d="M26 18c6-6 12-6 16-2" fill="none" stroke="#c9552b" stroke-width="2.5" stroke-linecap="round"/></symbol>
+<symbol id="i-yogurt" viewBox="0 0 64 64"><path d="M12 18h40l-5 40H17z" fill="#fff" stroke="#15211e" stroke-width="2" stroke-linejoin="round"/><rect x="10" y="10" width="44" height="9" rx="3" fill="#3aa3d6" stroke="#15211e" stroke-width="2"/><path d="M15 34h34" stroke="#3aa3d6" stroke-width="7"/><circle cx="32" cy="46" r="5" fill="#8e3b63"/></symbol>
+
+<!-- characters -->
+<symbol id="c-bear" viewBox="0 0 160 130"><rect width="160" height="130" fill="#cfe3ea"/><path d="M4 130V72a76 64 0 0 1 152 0v58z" fill="#27403b"/><circle cx="52" cy="62" r="11" fill="#8a5a3a"/><circle cx="108" cy="62" r="11" fill="#8a5a3a"/><circle cx="52" cy="63" r="5" fill="#d9a07a"/><circle cx="108" cy="63" r="5" fill="#d9a07a"/><ellipse cx="80" cy="122" rx="52" ry="26" fill="#8a5a3a"/><circle cx="80" cy="88" r="31" fill="#8a5a3a"/><ellipse cx="80" cy="100" rx="15" ry="11" fill="#dcb88e"/><ellipse cx="80" cy="94" rx="5.5" ry="4" fill="#2a1a12"/><path d="M60 84q7 6 14 0M86 84q7 6 14 0" fill="none" stroke="#2a1a12" stroke-width="3" stroke-linecap="round"/><g fill="#fff" font-family="Georgia,serif" font-weight="700"><text x="116" y="62" font-size="20">z</text><text x="128" y="46" font-size="15">z</text><text x="138" y="33" font-size="11">z</text></g></symbol>
+<symbol id="c-runner" viewBox="0 0 160 130"><rect width="160" height="130" fill="#d9eef0"/><rect y="112" width="160" height="18" fill="#9bb7a4"/><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M80 48L72 82" stroke="#e0612a" stroke-width="15"/><path d="M78 52L98 66L112 52" stroke="#f1c79a" stroke-width="8"/><path d="M76 54L58 70L44 62" stroke="#f1c79a" stroke-width="8"/><path d="M72 82L96 98L90 118" stroke="#1d3b34" stroke-width="10"/><path d="M72 82L54 100L34 94" stroke="#1d3b34" stroke-width="10"/><path d="M14 40h20M8 54h26M18 68h16" stroke="#8aa8a0" stroke-width="3"/></g><circle cx="82" cy="32" r="12" fill="#f1c79a"/><path d="M70 30h24" stroke="#8e3b63" stroke-width="6" stroke-linecap="round"/><rect x="73" y="56" width="14" height="12" rx="2" fill="#fff"/><text x="80" y="66" font-size="11" font-weight="800" text-anchor="middle" fill="#15211e" font-family="Arial,sans-serif">26</text><ellipse cx="94" cy="120" rx="9" ry="4" fill="#8e3b63"/><ellipse cx="34" cy="97" rx="9" ry="4" fill="#8e3b63"/></symbol>
+<symbol id="c-lifter" viewBox="0 0 160 130"><rect width="160" height="130" fill="#e4e6f3"/><rect y="116" width="160" height="14" fill="#8f94b0"/><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M54 54L36 40L34 24" stroke="#d9a074" stroke-width="10"/><path d="M106 54L124 40L126 24" stroke="#d9a074" stroke-width="10"/></g><path d="M52 52h56l-8 44H60z" fill="#2f7d46"/><rect x="62" y="96" width="14" height="22" rx="3" fill="#1d3b34"/><rect x="84" y="96" width="14" height="22" rx="3" fill="#1d3b34"/><circle cx="80" cy="36" r="12" fill="#d9a074"/><path d="M68 32q12-10 24 0" fill="#2a1a12"/><path d="M12 22h136" stroke="#444" stroke-width="5" stroke-linecap="round"/><rect x="6" y="6" width="9" height="32" rx="2" fill="#2a2f44"/><rect x="17" y="10" width="7" height="24" rx="2" fill="#4a5070"/><rect x="145" y="6" width="9" height="32" rx="2" fill="#2a2f44"/><rect x="136" y="10" width="7" height="24" rx="2" fill="#4a5070"/></symbol>
+<symbol id="c-biker" viewBox="0 0 160 130"><rect width="160" height="130" fill="#e0efd9"/><path d="M0 112q30-14 60-4t100-6v28H0z" fill="#7da56a"/><g fill="none" stroke="#15211e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><circle cx="36" cy="98" r="22"/><circle cx="126" cy="98" r="22"/><path d="M36 98L66 98L88 64L126 98M66 98L56 64L88 64"/><path d="M88 64L96 54"/></g><g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M62 62L86 42" stroke="#8e3b63" stroke-width="11"/><path d="M86 44L98 56" stroke="#f1c79a" stroke-width="6"/><path d="M62 62L78 80L68 98" stroke="#1d3b34" stroke-width="9"/></g><circle cx="94" cy="34" r="9" fill="#f1c79a"/><path d="M84 33a10 10 0 0 1 20 0z" fill="#e0612a"/><rect x="52" y="58" width="22" height="6" rx="3" fill="#15211e"/></symbol>
+<symbol id="c-dog" viewBox="0 0 160 130"><rect width="160" height="130" fill="#dbeaf5"/><g fill="#fff"><circle cx="20" cy="24" r="3"/><circle cx="140" cy="20" r="3"/><circle cx="130" cy="60" r="2.5"/><circle cx="24" cy="70" r="2.5"/><circle cx="148" cy="94" r="3"/></g><path d="M0 118q40-10 80-4t80-6v22H0z" fill="#fff"/><polygon points="46,52 50,10 78,40" fill="#56666b"/><polygon points="114,52 110,10 82,40" fill="#56666b"/><polygon points="52,44 54,22 68,40" fill="#e9a9b3"/><polygon points="108,44 106,22 92,40" fill="#e9a9b3"/><circle cx="80" cy="72" r="36" fill="#cdd5d8"/><path d="M44 66a36 36 0 0 1 72 0c-10-14-22-14-36-14s-26 0-36 14z" fill="#56666b"/><ellipse cx="80" cy="90" rx="22" ry="18" fill="#fff"/><ellipse cx="80" cy="81" rx="7.5" ry="5.5" fill="#1b1b1b"/><circle cx="64" cy="68" r="5" fill="#fff"/><circle cx="96" cy="68" r="5" fill="#fff"/><circle cx="64" cy="69" r="3.2" fill="#1b1b1b"/><circle cx="96" cy="69" r="3.2" fill="#1b1b1b"/><path d="M74 96q6 16 12 0z" fill="#e86a7a"/><path d="M80 86v8" stroke="#1b1b1b" stroke-width="2"/></symbol>
+</defs>
+</svg>
+
+<header class="top">
+  <div class="brand">
+    <svg viewBox="0 0 64 64" aria-hidden="true"><use href="#i-walnut"/></svg>
+    <b>Fuel the Beast</b>
+  </div>
+  <div class="prog" aria-label="Progress">
+    <small id="progText">0 of 19 challenges done</small>
+    <div class="bar"><i id="progBar"></i></div>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<button id="calcBtn" aria-expanded="false" aria-controls="calc"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="2" width="16" height="20" rx="3"/><rect x="7" y="5" width="10" height="4" rx="1"/><path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01M16 17h.01"/></svg>Calculator</button>
+<div id="calc" role="dialog" aria-label="Calculator">
+  <div class="ch"><span>Calculator</span><button type="button" id="calcClose" aria-label="Close calculator">Close</button></div>
+  <div id="cexp" aria-hidden="true"></div>
+  <div id="cdisp" role="status" aria-live="polite">0</div>
+  <div class="keys" id="ckeys">
+    <button class="cl" data-k="C">C</button><button class="cl" data-k="B" aria-label="Backspace">&#9003;</button><button class="op" data-k="/" aria-label="divide">&divide;</button><button class="op" data-k="*" aria-label="times">&times;</button>
+    <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button><button class="op" data-k="-" aria-label="minus">&minus;</button>
+    <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button><button class="op" data-k="+" aria-label="plus">+</button>
+    <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button><button class="eq" data-k="=" style="grid-row:span 2" aria-label="equals">=</button>
+    <button data-k="0" style="grid-column:span 2">0</button><button data-k=".">.</button>
+  </div>
+</div>
+<canvas id="glitter" aria-hidden="true"></canvas>
+<div id="tip" role="tooltip"></div>
+<div class="sr" aria-live="polite" id="live"></div>
+
+<script>
+/* ===================== DATA ===================== */
+// Values are per serving. Calories are computed from the macromolecule grams (fat 9, carb 4, protein 4).
+const F = {
+  spaghetti:{name:'Spaghetti (dry)',serv:'2 oz (56 g)',spc:8,fat:1,sat:0,trans:0,chol:0,sod:0,carb:42,fib:2,sug:2,pro:7,icon:'i-pasta'},
+  chicken:{name:'Grilled chicken breast',serv:'3 oz (85 g)',spc:4,fat:3,sat:1,trans:0,chol:70,sod:60,carb:0,fib:0,sug:0,pro:26,icon:'i-chicken'},
+  walnuts:{name:'Walnuts',serv:'1 oz (28 g)',spc:6,fat:18,sat:1.5,trans:0,chol:0,sod:0,carb:4,fib:2,sug:1,pro:4,icon:'i-walnut'},
+  banana:{name:'Banana',serv:'1 medium (118 g)',spc:1,fat:0,sat:0,trans:0,chol:0,sod:1,carb:27,fib:3,sug:14,pro:1,icon:'i-banana'},
+  avocado:{name:'Avocado',serv:'1/2 fruit (100 g)',spc:2,fat:15,sat:2,trans:0,chol:0,sod:7,carb:9,fib:7,sug:1,pro:2,icon:'i-avocado'},
+  sportsdrink:{name:'Sports drink',serv:'12 fl oz (355 mL)',spc:2,fat:0,sat:0,trans:0,chol:0,sod:160,carb:21,fib:0,sug:21,pro:0,icon:'i-drink'},
+  butter:{name:'Butter',serv:'1 Tbsp (14 g)',spc:32,fat:11,sat:7,trans:0,chol:30,sod:90,carb:0,fib:0,sug:0,pro:0,icon:'i-butter'},
+  protein:{name:'Protein powder',serv:'1 scoop (32 g)',spc:30,fat:1.5,sat:0.5,trans:0,chol:10,sod:140,carb:3,fib:1,sug:1,pro:24,icon:'i-protein'},
+  pb:{name:'Peanut butter',serv:'2 Tbsp (32 g)',spc:14,fat:16,sat:3,trans:0,chol:0,sod:140,carb:7,fib:2,sug:3,pro:7,icon:'i-pb'},
+  bagel:{name:'Plain bagel',serv:'1 bagel (105 g)',spc:1,fat:1.5,sat:0,trans:0,chol:0,sod:430,carb:56,fib:2,sug:5,pro:10,icon:'i-bagel'},
+  beans:{name:'Black beans (canned)',serv:'1/2 cup (130 g)',spc:3,fat:0.5,sat:0,trans:0,chol:0,sod:140,carb:20,fib:8,sug:0,pro:8,icon:'i-beans'},
+  margarine:{name:'Stick margarine (older recipe)',serv:'1 Tbsp (14 g)',spc:32,fat:11,sat:2,trans:2.5,chol:0,sod:90,carb:0,fib:0,sug:0,pro:0,icon:'i-margarine'},
+  cookies:{name:'Bakery-style cookies',serv:'2 cookies (30 g)',spc:8,fat:8,sat:3.5,trans:1.5,chol:5,sod:110,carb:22,fib:0,sug:12,pro:2,icon:'i-cookie'},
+  chips:{name:'Potato chips',serv:'1 oz (28 g, about 15 chips)',spc:4,fat:10,sat:1.5,trans:0,chol:0,sod:170,carb:15,fib:1,sug:0,pro:2,icon:'i-chips'},
+  jerky:{name:'Beef jerky',serv:'1 oz (28 g)',spc:2,fat:1,sat:0.5,trans:0,chol:15,sod:450,carb:3,fib:0,sug:2,pro:12,icon:'i-jerky'},
+  salmon:{name:'Salmon belly (fatty cut)',serv:'4 oz (113 g)',spc:2,fat:24,sat:5,trans:0,chol:70,sod:70,carb:0,fib:0,sug:0,pro:16,icon:'i-salmon'},
+  yogurt:{name:'Nonfat Greek yogurt',serv:'3/4 cup (170 g)',spc:1,fat:0,sat:0,trans:0,chol:5,sod:65,carb:6,fib:0,sug:5,pro:17,icon:'i-yogurt'}
+};
+const cal = f => Math.round((9*f.fat + 4*f.carb + 4*f.pro)/5)*5;
+const fmt = n => String(Math.round(n*10)/10);
+
+const MACRO = {
+  fat:{id:'fat',name:'Lipid',alt:'(fat)',mono:'fatty acids + glycerol',fn:'long-term energy storage and insulation. Fat packs 9 Calories per gram, more than double the other two.',row:'Total Fat',cls:'fat'},
+  carb:{id:'carb',name:'Carbohydrate',alt:'(sugar, starch)',mono:'monosaccharides (simple sugars)',fn:'quick, short-term energy. Extra is stored as glycogen in animals and starch in plants.',row:'Total Carbohydrate',cls:'carb'},
+  pro:{id:'pro',name:'Protein',alt:'',mono:'amino acids',fn:'building and repairing body structures like muscle, plus enzymes and immunity.',row:'Protein',cls:'pro'},
+  nuc:{id:'nuc',name:'Nucleic acid',alt:'(DNA, RNA)',mono:'nucleotides',fn:'storing genetic information. It is in every cell, so it is in all food, but it is not an energy source and is not listed on the label.',row:'',cls:'nuc'}
+};
+const domMacro = f => { const m={fat:f.fat,carb:f.carb,pro:f.pro}; return Object.keys(m).sort((a,b)=>m[b]-m[a])[0]; };
+const grams = (f,k) => f[k];
+
+const CAST = {
+  bear:{svg:'c-bear',who:'Bruno the black bear',short:'Winter is coming'},
+  runner:{svg:'c-runner',who:'Maya the marathon runner',short:'Race is tomorrow'},
+  lifter:{svg:'c-lifter',who:'Marcus the bodybuilder',short:'Wants bigger muscles'},
+  biker:{svg:'c-biker',who:'Kai the mountain bike racer',short:'Start line in 15 minutes'},
+  dog:{svg:'c-dog',who:'Juneau the sled dog',short:'A 100-mile race in the cold'}
+};
+
+// Stage 2 missions
+const MISSIONS = [
+ { id:'bear', cast:'bear', need:'fat',
+   story:'Bruno will sleep through the winter and will not eat for about five months. When he wakes up, his body must still have energy left. He also needs insulation against the cold.',
+   macroHint:'Which macromolecule stores energy for months, not hours, and also insulates the body?',
+   opts:['walnuts','banana','chicken'], best:'walnuts',
+   notes:{
+     walnuts:'<b>Best choice.</b> 18 g of fat, the most of any label here. Lipids hold 9 Calories per gram, so they are the most compact long-term energy bank.',
+     banana:'Mostly carbohydrate (27 g). Carbs are quick energy that gets used up in hours or days, not months.',
+     chicken:'Mostly protein (26 g). Protein builds and repairs the body. It is not the main energy bank for a long winter sleep.'},
+   learn:'Under Total Fat the label lists <b>Saturated</b> and <b>Trans</b> fat. These are just types of fat. Nuts like walnuts are mostly the healthier <b>unsaturated</b> kind, which is not listed separately.',
+   bonus:{q:'Besides storing energy, what else does the thick layer of fat do for Bruno?',
+     opts:['It insulates him and keeps heat in','It builds new muscle','It stores his genetic information','It makes quick sugar for racing'],
+     why:'Body fat is insulation. A thick layer keeps heat in, which helps Bruno survive the cold winter. Lipids store long-term energy AND insulate.'}},
+ { id:'runner', cast:'runner', need:'carb',
+   story:'Maya runs a marathon tomorrow morning. Tonight she is carb loading. Her dinner should top off the energy her muscles can use quickly.',
+   macroHint:'Which macromolecule is the body\'s quick, short-term fuel?',
+   opts:['spaghetti','pb','chicken'], best:'spaghetti',
+   notes:{
+     spaghetti:'<b>Best choice.</b> 42 g of carbohydrate, far more than its fat (1 g) or protein (7 g). Carbs break down into glucose for quick energy and are stored as glycogen for later.',
+     pb:'Mostly lipid (16 g of fat). Fat is slow, long-term energy and is not what you load before a race.',
+     chicken:'Mostly protein (26 g) with 0 g carbohydrate. Great for repairing muscle, not for topping off quick energy.'},
+   learn:'Under Total Carbohydrate the label lists <b>Dietary Fiber</b>. Fiber is a carbohydrate your body cannot digest. It helps keep food moving through your body.',
+   bonus:{q:'Extra carbohydrate is stored in animals (like Maya) in a polymer called:',
+     opts:['Glycogen','Starch','Cellulose','Triglyceride'],
+     why:'Animals store carbohydrate as glycogen. Plants store it as starch. Both are polymers of glucose, a monosaccharide.'}},
+ { id:'lifter', cast:'lifter', need:'pro',
+   story:'Marcus lifts hard four days a week. His muscle fibers get tiny tears, and his body repairs them bigger and stronger. He needs the molecules that build and repair muscle.',
+   macroHint:'Which macromolecule is made of amino acids and builds muscle?',
+   opts:['protein','bagel','avocado'], best:'protein',
+   notes:{
+     protein:'<b>Best choice.</b> 24 g of protein with almost nothing else. Proteins are chains of amino acids, the material muscles are rebuilt from.',
+     bagel:'Mostly carbohydrate (56 g). It gives energy but supplies much less protein (10 g).',
+     avocado:'Mostly lipid (15 g of fat). Healthy fat, but only 2 g of protein.'},
+   learn:'Protein has <b>4 Calories per gram</b> (same as carbohydrate). Marcus\'s 24 g of protein is about 96 Calories. Fat has 9 Calories per gram.',
+   bonus:{q:'What is the monomer (building block) of a protein?',
+     opts:['Amino acid','Monosaccharide','Fatty acid','Nucleotide'],
+     why:'Amino acids link into long chains called polypeptides, which fold into proteins.'}},
+ { id:'biker', cast:'biker', need:'carb',
+   story:'Kai\'s mountain bike race starts in 15 minutes. He wants fuel his body can use right now.',
+   macroHint:'Which macromolecule is the body\'s quick, short-term fuel?',
+   opts:['sportsdrink','yogurt','walnuts'], best:'sportsdrink',
+   notes:{
+     sportsdrink:'<b>Best choice.</b> 21 g of carbohydrate and 0 g of fat or protein. Carbs break down into glucose, fuel his muscles can use right away.',
+     yogurt:'Mostly protein (17 g) with only 6 g of carbohydrate. Protein is for building and repairing, not quick fuel.',
+     walnuts:'Mostly lipid (18 g of fat). Fat is slow, long-term energy, not what you want at the start line.'},
+   learn:'Under Total Carbohydrate you will often see <b>Total Sugars</b>. Sugars are simple carbohydrates, which is why a sports drink is such fast fuel.',
+   bonus:{q:'Glucose, the simple sugar in Kai\'s drink, is an example of a:',
+     opts:['Monosaccharide','Amino acid','Fatty acid','Nucleotide'],
+     why:'Glucose is a monosaccharide, the monomer of carbohydrates. Cells break it down for quick energy.'}},
+ { id:'dog', cast:'dog', need:'fat',
+   story:'Juneau pulls a sled 100 miles over several cold days. She burns huge amounts of energy and needs it to last, plus warmth against the cold. Her musher can pack one food for the trip.',
+   macroHint:'Long-lasting energy that can be stored for a long time, and insulates.',
+   opts:['salmon','beans','yogurt'], best:'salmon',
+   notes:{
+     salmon:'<b>Best choice.</b> 24 g of fat, more than its protein (16 g) and with 0 g of carbohydrate. Lipids hold 9 Calories per gram, the most compact long-lasting fuel, and body fat also insulates against the cold.',
+     beans:'Mostly carbohydrate (20 g). Carbs are quicker energy that does not last as long.',
+     yogurt:'Mostly protein (17 g). Protein builds and repairs the body rather than serving as the main long-term fuel.'},
+   learn:'Salmon lists <b>Cholesterol</b> (70 mg). Cholesterol is a lipid made only by animals, so plant foods like walnuts and beans list 0 mg. Also, most of the fat in fish like salmon is the healthier <b>unsaturated</b> kind.',
+   bonus:{q:'Lipids like the fat in salmon are built from glycerol and which other monomer?',
+     opts:['Fatty acids','Amino acids','Monosaccharides','Nucleotides'],
+     why:'A fat is built from one glycerol and three fatty acids. Fatty acids are the monomers, and the fat is the polymer.'}}
+];
+
+// Stage 3 question bank
+const BANK = [
+ {foods:['chips'],type:'num',q:'This bag has 4 servings per container. If you eat the whole bag, how many grams of Total Fat do you eat?',ans:40,unit:'g',hint:'Total Fat per serving times servings per container.',why:'10 g of fat per serving × 4 servings = 40 g of fat.',note:'Under Total Fat you will see <b>Saturated</b> and <b>Trans</b> fat. These are types of fat. Trans fat is the type to avoid, and ingredients like "partially hydrogenated oil" are a clue it is there.'},
+ {foods:['walnuts'],type:'num',q:'Fat has 9 Calories per gram. How many Calories in ONE serving of walnuts come from fat?',ans:162,unit:'Cal',hint:'Total Fat grams × 9.',why:'18 g × 9 Cal/g = 162 Calories from fat. That is why fat is such a dense energy store.',note:'Walnuts have 0 mg of <b>Cholesterol</b>. Cholesterol is a lipid made only by animals, so plant foods list 0.'},
+ {foods:['spaghetti'],type:'num',q:'Carbohydrates have 4 Calories per gram. How many Calories in ONE serving of spaghetti come from carbohydrate?',ans:168,unit:'Cal',hint:'Total Carbohydrate grams × 4.',why:'42 g × 4 Cal/g = 168 Calories from carbohydrate.',note:'<b>Dietary Fiber</b> is listed under Total Carbohydrate. It is a carb your body cannot digest, and it helps keep food moving through your body.'},
+ {foods:['chicken'],type:'num',q:'Protein has 4 Calories per gram. How many Calories in ONE serving of grilled chicken come from protein?',ans:104,unit:'Cal',hint:'Protein grams × 4.',why:'26 g × 4 Cal/g = 104 Calories from protein.',note:'Chicken lists 70 mg of <b>Cholesterol</b> because it is an animal food. Plants have none.'},
+ {foods:['spaghetti'],type:'num',q:'Maya eats TWO servings of spaghetti. How many grams of carbohydrate is that?',ans:84,unit:'g',hint:'Carbohydrate per serving × 2.',why:'42 g × 2 servings = 84 g of carbohydrate. Eat two servings and every number on the label doubles.',note:'The label also lists <b>Sodium</b>, a mineral found in salt. It is not one of the four macromolecules, but too much over time is linked to high blood pressure.'},
+ {foods:['chicken','beans','bagel'],type:'which',q:'Which food has the MOST protein in one serving?',ans:'chicken',why:'Chicken has 26 g of protein, more than the beans (8 g) or the bagel (10 g).',note:'Protein is made of amino acids, and your body uses them to build muscle, enzymes, and antibodies.'},
+ {foods:['butter','avocado','walnuts'],type:'which',q:'Which food has the MOST Total Fat in one serving?',ans:'walnuts',why:'Walnuts have 18 g of fat, more than the avocado (15 g) or the butter (11 g).',note:'Butter\'s fat is mostly <b>saturated</b>, usually solid at room temperature. Nuts and avocado fat is mostly <b>unsaturated</b>, usually liquid oil, and is the healthier kind.'},
+ {foods:['banana','bagel','yogurt'],type:'which',q:'Which food has the MOST Total Carbohydrate in one serving?',ans:'bagel',why:'The bagel has 56 g of carbohydrate, more than the banana (27 g) or the yogurt (6 g).',note:'Part of the banana\'s carbohydrate is <b>Total Sugars</b> (simple carbs) and part is <b>Dietary Fiber</b>. Both are listed under Total Carbohydrate.'},
+ {foods:['butter','jerky','yogurt'],type:'which',q:'Which food has ZERO grams of protein?',ans:'butter',why:'Butter has 0 g of protein. Jerky has 12 g and the yogurt has 17 g.',note:'Butter is almost pure lipid: 11 g of fat and nothing else. Its Calories come almost entirely from fat.'},
+ {foods:['walnuts'],type:'mc',q:'Which macromolecule gives the MOST Calories per gram?',
+  opts:['Lipid (fat): 9 Calories per gram','Carbohydrate: 4 Calories per gram','Protein: 4 Calories per gram','They are all the same'],ans:0,
+  why:'Fat has 9 Calories per gram, more than double carbohydrate or protein. That is why animals use fat for long-term energy storage.',note:'That is why walnuts, with 18 g of fat, have almost as many Calories as a bagel with 56 g of carbohydrate.'}
+];
+
+const GLOSS = {
+ 'macromolecule':'A very large molecule made of many small units. The four types: carbohydrates, proteins, lipids, nucleic acids.',
+ 'monomer':'One small building-block unit, like one amino acid or one sugar.',
+ 'polymer':'A long chain of many monomers joined together.',
+ 'carbohydrate':'Sugars and starches. Quick energy. Monomer: monosaccharide (simple sugar).',
+ 'protein':'Chains of amino acids. Builds and repairs muscle and makes enzymes.',
+ 'lipid':'Fats and oils. Long-term energy storage and insulation. Built from glycerol + fatty acids.',
+ 'nucleic acid':'DNA and RNA. Store genetic information. Monomer: nucleotide.',
+ 'amino acid':'The monomer of protein.',
+ 'glycogen':'How animals store extra carbohydrate, so the body has fuel in reserve.',
+ 'glucose':'A simple sugar (monosaccharide). Your cells\' main quick fuel.',
+ 'calorie':'A unit of energy. Labels say "Calories." Fat has 9 per gram. Carbohydrate and protein have 4 per gram.',
+ 'calories':'A unit of energy. Fat has 9 per gram. Carbohydrate and protein have 4 per gram.',
+ 'serving size':'The amount all the numbers on the label are based on. Eat two servings and you double every number.',
+ 'saturated fat':'A fat with no double bonds in its fatty acids. Usually solid at room temperature. Eat less of it.',
+ 'unsaturated fat':'A fat with double bonds in its fatty acids. Usually liquid oil. The healthier kind.',
+ 'trans fat':'A fat made when oil is chemically hardened (hydrogenated). Raises bad cholesterol. Avoid it.',
+ 'cholesterol':'A waxy lipid made by animals. Plants have none. Your body makes some of its own.',
+ 'fiber':'A carbohydrate you cannot digest. It helps keep food moving through your body.',
+ 'dietary fiber':'A carbohydrate you cannot digest. It helps keep food moving through your body.',
+ 'sodium':'A mineral found in salt. Too much is linked to high blood pressure.',
+ 'hibernation':'A long winter sleep where an animal lives off stored body fat.',
+ 'carb loading':'Eating extra carbohydrate before long endurance exercise so muscles store more glycogen.',
+ 'endurance':'The ability to keep going for a long time.',
+ 'fatty acid':'The monomer of lipids (along with glycerol).',
+ 'monosaccharide':'A simple sugar. The monomer of carbohydrates.',
+ 'unsaturated':'Having double bonds in the fatty acids. Usually liquid oil. The healthier kind of fat.',
+ 'saturated':'Having no double bonds in the fatty acids. Usually solid at room temperature.',
+ 'insulation':'A layer that keeps heat in. Body fat insulates animals in the cold.'
+};
+
+
+/* ===================== EFFECTS: red flash + glitter ===================== */
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let lastPt = {x: window.innerWidth/2, y: window.innerHeight*0.6};
+document.addEventListener('click', e=>{ if(e.clientX||e.clientY) lastPt={x:e.clientX,y:e.clientY}; }, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ const t=e.target&&e.target.getBoundingClientRect?e.target.getBoundingClientRect():null; if(t&&t.width) lastPt={x:t.left+t.width/2,y:t.top+t.height/2}; } }, true);
+const gc = document.getElementById('glitter'), gx = gc.getContext('2d');
+let parts = [], gAnim = null;
+function sizeCanvas(){ const d=window.devicePixelRatio||1; gc.width=window.innerWidth*d; gc.height=window.innerHeight*d; gx.setTransform(d,0,0,d,0,0); }
+sizeCanvas(); window.addEventListener('resize', sizeCanvas);
+function celebrate(){
+  const colors=['#f3b73a','#ffd966','#ff7eb6','#7ee0ff','#ffffff','#b28dff','#7cf5a2','#e0612a'];
+  const n=reduceMotion?70:150;
+  for(let i=0;i<n;i++){
+    const ang = -Math.PI/2 + (Math.random()-0.5)*Math.PI*0.9;   // spray upward in a wide cone
+    const sp = 5 + Math.random()*11;
+    parts.push({x:lastPt.x, y:lastPt.y, vx:Math.cos(ang)*sp, vy:Math.sin(ang)*sp,
+      g:0.22+Math.random()*0.12, r:1.5+Math.random()*3.2, c:colors[(Math.random()*colors.length)|0],
+      rot:Math.random()*6.28, vr:(Math.random()-0.5)*0.4, life:0, max:60+Math.random()*50, star:Math.random()<0.35});
+  }
+  if(!gAnim) gAnim=requestAnimationFrame(stepGlitter);
+}
+function stepGlitter(){
+  gx.clearRect(0,0,window.innerWidth,window.innerHeight);
+  parts = parts.filter(p=>p.life<p.max && p.y<window.innerHeight+20);
+  parts.forEach(p=>{
+    p.life++; p.vy+=p.g; p.vx*=0.985; p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+    const fade = 1-p.life/p.max, tw = 0.6+0.4*Math.sin(p.life*0.7+p.rot);
+    gx.save(); gx.globalAlpha=Math.max(0,fade)*tw; gx.translate(p.x,p.y); gx.rotate(p.rot); gx.fillStyle=p.c;
+    if(p.star){ gx.beginPath(); for(let k=0;k<4;k++){ gx.lineTo(0,-p.r*2.2); gx.rotate(Math.PI/4); gx.lineTo(0,-p.r*0.6); gx.rotate(Math.PI/4);} gx.closePath(); gx.fill(); }
+    else gx.fillRect(-p.r,-p.r*0.6,p.r*2,p.r*1.2);
+    gx.restore();
+  });
+  if(parts.length){ gAnim=requestAnimationFrame(stepGlitter); } else { gAnim=null; gx.clearRect(0,0,window.innerWidth,window.innerHeight); }
+}
+
+/* ===================== STATE & HELPERS ===================== */
+const TOTAL = 6 + MISSIONS.length + 8;
+const S = { review:null, name:'', hour:'', s1:null, s2:null, s3:null, done:{s1:0,s2:0,s3:0}, score:{s1:0,s2:0,s3:0}, max:{s1:12,s2:MISSIONS.length*3,s3:8} };
+const app = document.getElementById('app');
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const ico = (id,cls='ico') => `<svg class="${cls}" viewBox="0 0 64 64" aria-hidden="true"><use href="#${id}"/></svg>`;
+const pic = id => `<svg viewBox="0 0 160 130" role="img" aria-label=""><use href="#${id}"/></svg>`;
+function say(t){ document.getElementById('live').textContent = t; }
+function updateProg(){
+  const d = S.done.s1 + S.done.s2 + S.done.s3;
+  document.getElementById('progBar').style.width = (100*d/TOTAL)+'%';
+  document.getElementById('progText').textContent = d + ' of ' + TOTAL + ' challenges done';
+}
+function listen(text){
+  if(!('speechSynthesis' in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,''));
+  u.rate = 0.95; speechSynthesis.speak(u);
+}
+const plain = h => h.replace(/<[^>]+>/g,'');
+let readText = '';
+
+/* ===================== NUTRITION LABEL ===================== */
+function labelHTML(key, o={}){
+  const f = F[key];
+  const mode = o.mode || 'macro';           // 'macro' | 'detail' | 'plain'
+  const click = o.click || [];
+  const st = o.state || {};                  // {picked:'fat', right:'carb', wrong:['fat']}
+  const R = [
+    {k:'fat', t:'Total Fat', v:fmt(f.fat)+'g', m:'fat'},
+    {k:'sat', t:'Saturated Fat', v:fmt(f.sat)+'g', sub:1, d:1},
+    {k:'trans', t:'Trans Fat', v:fmt(f.trans)+'g', sub:1, ital:1, d:1},
+    {k:'chol', t:'Cholesterol', v:fmt(f.chol)+'mg', d:1},
+    {k:'sod', t:'Sodium', v:fmt(f.sod)+'mg', d:1},
+    {k:'carb', t:'Total Carbohydrate', v:fmt(f.carb)+'g', m:'carb'},
+    {k:'fib', t:'Dietary Fiber', v:fmt(f.fib)+'g', sub:1, d:1},
+    {k:'sug', t:'Total Sugars', v:fmt(f.sug)+'g', sub:1, d:1},
+    {k:'pro', t:'Protein', v:fmt(f.pro)+'g', m:'pro', thick:1}
+  ];
+  let h = `<div class="nf" role="group" aria-label="Nutrition facts for ${f.name}">`;
+  h += `<h4>Nutrition Facts</h4>`;
+  h += `<div class="sv">${f.spc} servings per container<br><b>Serving size</b> ${f.serv}</div>`;
+  h += `<div class="cal"><span>Calories</span><b>${cal(f)}</b></div>`;
+  R.forEach(r=>{
+    const cls = ['r'];
+    if(r.sub) cls.push('sub'); if(r.ital) cls.push('ital');
+    if(mode==='macro' && r.m) cls.push('mac', r.m);
+    if(mode==='detail' && r.d) cls.push('det');
+    const isClick = click.includes(r.k);
+    if(isClick) cls.push('click');
+    if(st.picked===r.k) cls.push('picked');
+    if(st.wrong && st.wrong.includes(r.k)) cls.push('wrong');
+    if(st.right===r.k) cls.push('right');
+    const attrs = isClick ? ` role="button" tabindex="0" data-row="${r.k}" data-food="${key}"` : '';
+    h += `<div class="${cls.join(' ')}"${attrs}><span><b>${r.t}</b> ${r.v}</span></div>`;
+  });
+  h += `<div class="fine">Practice label for classroom use.</div></div>`;
+  return h;
+}
+function foodHead(key){ const f=F[key]; return `<div class="foodhead">${ico(f.icon)}<div><b>${f.name}</b><small>per ${f.serv}</small></div></div>`; }
+function legend(kind){
+  if(kind==='macro') return `<div class="legend" aria-label="Color key"><span class="fat">Total Fat row</span><span class="carb">Total Carbohydrate row</span><span class="pro">Protein row</span></div>`;
+  return `<div class="legend"><span class="det">Blue rows = the details that matter second</span></div>`;
+}
+
+/* ===================== HOME ===================== */
+function renderHome(){
+  const cast = Object.values(CAST).map(c=>`<div class="who"><div class="pic">${pic(c.svg)}</div><b>${c.who}</b><span>${c.short}</span></div>`).join('');
+  app.innerHTML = `
+  <section class="hero">
+    <h1>Fuel the Beast</h1>
+    <p>Five hungry clients. A whole grocery store of nutrition labels. Your job: read the macromolecules on each label and pick the food that fits what the body needs.</p>
+    <div class="cast">${cast}</div>
+    <div class="startrow">
+      <div class="field"><label for="nm">Name (optional)</label><input id="nm" autocomplete="off" maxlength="30"></div>
+      <div class="field"><label for="hr">Hour (optional)</label><input id="hr" autocomplete="off" maxlength="6"></div>
+      <button class="btn" data-act="map">Start the challenge</button>
+    </div>
+    <div class="note">Nothing you type here is saved or sent anywhere. It only shows on your results screen.</div>
+  </section>
+  <div class="hint">Tip: highlight any word, like <i>lipid</i> or <i>trans fat</i>, to see what it means.</div>`;
+}
+
+/* ===================== STAGE MAP ===================== */
+function renderMap(){
+  const done1 = S.done.s1>=6, done2 = S.done.s2>=MISSIONS.length, done3 = S.done.s3>=8;
+  const all = done1 && done2 && done3;
+  const card = (cls,n,title,icons,txt,act,done,progress)=>`
+    <div class="card stage ${done?'done':''}">
+      <span class="tag">${done?'Complete':progress}</span>
+      <div class="iconrow">${icons.map(i=>ico(i)).join('')}</div>
+      <h3>${n}. ${title}</h3>
+      <p>${txt}</p>
+      <button class="btn ${done?'alt':''}" data-act="${act}">${done?'Play again':(progress.startsWith('0')?'Start':'Continue')}</button>
+    </div>`;
+  app.innerHTML = `
+  <h2>Pick a stage${S.name?', '+esc(S.name):''}</h2>
+  <p>Do them in order for the best build-up. Every choice comes down to Total Fat, Total Carbohydrate, and Protein. You will pick up a few extra label facts along the way.</p>
+  <div class="stages">
+    ${card('',1,'Decode the label',['i-chicken','i-pasta','i-walnut'],'Read the grams of fat, carbohydrate, and protein. Decide what a food is mostly made of, and prove it with a number.','s1',done1,S.done.s1+' of 6 done')}
+    ${card('',2,'Fuel the client',['i-drink','i-avocado','i-protein'],'A hibernating bear, a marathon runner, a bodybuilder, a racer, a sled dog. Match each one to the right label.','s2',done2,S.done.s2+' of '+MISSIONS.length+' done')}
+    ${card('',3,'Label detective',['i-margarine','i-beans','i-butter'],'Compare labels, do Calorie math (fat 9, carb 4, protein 4), and learn a few extra label facts.','s3',done3,S.done.s3+' of 8 done')}
+  </div>
+  <p style="margin-top:20px"><button class="btn" data-act="summary">${all?'See my results':'See my results so far'}</button></p>`;
+}
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ===================== STAGE 1: DECODE ===================== */
+function startS1(){
+  S.review=null;
+  S.done.s1 = 0; S.score.s1 = 0;
+  S.s1 = { list: shuffle(['spaghetti','chicken','walnuts','avocado','yogurt','beans']), i:0 };
+  loadS1Item(); updateProg();
+}
+function loadS1Item(){
+  const s = S.s1; s.key = s.list[s.i]; s.f = F[s.key]; s.dom = domMacro(s.f);
+  s.step='macro'; s.mTry=0; s.pTry=0; s.wrongRows=[]; s.mOpts = shuffle(['fat','carb','pro']); s.noM=[];
+  renderS1();
+}
+function renderS1(){
+  const s = S.s1, f = s.f;
+  const step = s.step;
+  const stepline = `<div class="stepline"><span class="${step==='macro'?'on':'ok'}">Step 1: Name the macromolecule</span><span class="${step==='proof'?'on':(step==='done'?'ok':'')}">Step 2: Click your proof</span></div>`;
+  let panel = '';
+  if(step==='macro'){
+    readText = 'Which macromolecule is this food mostly made of? Compare the grams of fat, carbohydrate, and protein.';
+    panel = `<div class="q">Which macromolecule is the ${f.name.toLowerCase()} mostly made of?</div>
+      <div class="opts">${s.mOpts.map(k=>{const m=MACRO[k];return `<button class="opt ${m.cls} ${s.noM.includes(k)?'no':''}" data-act="s1m" data-k="${k}" ${s.noM.includes(k)?'disabled':''}><span><b>${m.name}</b> ${m.alt}<small>Built from ${m.mono}</small></span></button>`;}).join('')}</div>
+      <div class="tools"><button class="ghost" data-act="listen">Listen</button></div>`;
+  } else if(step==='proof'){
+    readText = 'Now click the line on the label that proves it. Which number is biggest?';
+    panel = `<div class="fb good show"><b>Yes, ${MACRO[s.dom].name}.</b> Now back it up with evidence.</div>
+      <div class="q" style="margin-top:14px">Click the line on the label that is your proof.</div>
+      <p>Scientists back up claims with numbers. Pick the one line that shows what this food is mostly made of.</p>
+      <div class="tools"><button class="ghost" data-act="listen">Listen</button></div>`;
+  } else {
+    const o = {fat:f.fat,carb:f.carb,pro:f.pro}, d = s.dom;
+    const others = ['fat','carb','pro'].filter(k=>k!==d).map(k=>`${fmt(o[k])} g ${MACRO[k].row==='Protein'?'protein':MACRO[k].row.toLowerCase().replace('total ','')}`);
+    const last = s.i === s.list.length-1;
+    panel = `<div class="fb good show"><b>Evidence locked in.</b> ${f.name} is mostly <b>${MACRO[d].name.toLowerCase()}</b>: ${fmt(o[d])} g ${MACRO[d].row.toLowerCase().replace('total ','')} beats ${others.join(' and ')}.<br><br><b>What ${MACRO[d].name.toLowerCase()} does:</b> ${MACRO[d].fn}</div>
+      <p style="margin-top:14px"><button class="btn" data-act="s1next">${last?'Finish stage 1':'Next food'}</button></p>`;
+  }
+  const clickRows = step==='proof' ? ['fat','carb','pro'] : [];
+  app.innerHTML = `
+    <h2>Stage 1: Decode the label <small style="font-weight:400;font-size:.65em;color:var(--mute)">food ${s.i+1} of ${s.list.length}</small></h2>
+    ${backBtn(1)}
+    ${stepline}
+    <div class="row2">
+      <div>
+        ${foodHead(s.key)}
+        ${labelHTML(s.key,{mode:'macro',click:clickRows,state:{wrong:s.wrongRows,right:step==='done'?MACRO[s.dom].id:null}})}
+        ${legend('macro')}
+      </div>
+      <div class="card" id="panel">${panel}<div class="fb" id="fb"></div></div>
+    </div>`;
+}
+function fb(msg,cls){ const el=document.getElementById('fb'); if(!el)return; el.className='fb show '+cls; el.innerHTML=msg; say(plain(msg)); el.scrollIntoView({block:'nearest'}); }
+
+function s1Macro(k){
+  const s=S.s1; s.mTry++;
+  if(k===s.dom){ celebrate(); if(s.mTry===1) S.score.s1++; s.step='proof'; renderS1(); say('Correct. Now click your proof on the label.'); }
+  else { s.noM.push(k); renderS1();
+    fb(`Not quite. Look at the three big numbers on the label: <b>Total Fat</b>, <b>Total Carbohydrate</b>, and <b>Protein</b>. Which one is the largest?`,'bad'); }
+}
+function s1Row(k){
+  const s=S.s1; s.pTry++;
+  if(k===s.dom){ celebrate(); if(s.pTry===1) S.score.s1++; s.step='done'; S.done.s1++; updateProg(); renderS1(); }
+  else { s.wrongRows.push(k); renderS1();
+    const f=s.f, row = MACRO[k].row;
+    fb(`${row} is only ${fmt(f[k])} g here. Compare it with the other two, then try the line with the biggest number.`,'bad'); }
+}
+function s1Next(){
+  const s=S.s1;
+  if(s.i < s.list.length-1){ s.i++; loadS1Item(); }
+  else renderStageEnd(1);
+}
+
+/* ===================== STAGE 2: FUEL THE CLIENT ===================== */
+function startS2(){
+  S.review=null;
+  S.done.s2=0; S.score.s2=0;
+  S.s2 = { list: shuffle(MISSIONS), i:0 };
+  loadS2(); updateProg();
+}
+function loadS2(){
+  const s=S.s2; s.m = s.list[s.i]; s.step='macro'; s.mTry=0; s.lTry=0; s.bTry=0;
+  s.mOpts = shuffle(['fat','carb','pro','nuc']); s.noM=[];
+  s.lOpts = shuffle(s.m.opts); s.noL=[];
+  const b = s.m.bonus; s.bOpts = shuffle(b.opts.map((t,i)=>({t,ok:i===0}))); s.noB=[];
+  renderS2();
+}
+function renderS2(){
+  const s=S.s2, m=s.m, c=CAST[m.cast], step=s.step;
+  const names={macro:'1. What does the body need?',label:'2. Pick the best label',bonus:'3. Bonus question'};
+  const order=['macro','label','bonus','done'];
+  const stepline = `<div class="stepline">${['macro','label','bonus'].map(k=>`<span class="${step===k?'on':(order.indexOf(step)>order.indexOf(k)?'ok':'')}">${names[k]}</span>`).join('')}</div>`;
+  const client = `<div class="client"><div class="pic">${pic(c.svg)}</div><div><h2>${c.who}</h2><p>${m.story}</p><div class="tools" style="margin-top:4px"><button class="ghost" data-act="listen">Listen</button></div></div></div>`;
+  let body='';
+  if(step==='macro'){
+    readText = m.story + ' What macromolecule does ' + c.who + ' need most?';
+    body = `<div class="card"><div class="q">What macromolecule does ${c.who.split(' the ')[0]} need most right now?</div>
+      <div class="opts">${s.mOpts.map(k=>{const x=MACRO[k];const no=s.noM.includes(k);return `<button class="opt ${x.cls} ${no?'no':''}" data-act="s2m" data-k="${k}" ${no?'disabled':''}><span><b>${x.name}</b> ${x.alt}<small>Monomer: ${x.mono}</small></span></button>`;}).join('')}</div>
+      <div class="fb" id="fb"></div></div>`;
+  } else if(step==='label'){
+    readText = 'Now pick the best label for ' + c.who;
+    const cards = s.lOpts.map((k,i)=>{
+      const no=s.noL.includes(k);
+      return `<div class="pickcard ${no?'no':''}">${foodHead(k)}${labelHTML(k,{mode:'macro'})}<button class="btn" data-act="s2l" data-k="${k}" ${no?'disabled':''}>${no?'Not this one':'Pick '+esc(F[k].name)}</button></div>`;
+    }).join('');
+    body = `<div class="fb good show"><b>${MACRO[m.need].name}, correct.</b> ${MACRO[m.need].fn}</div>
+      <div class="card" style="margin-top:14px"><div class="q">Now pick the label that best fuels ${c.who.split(' the ')[0]}.</div>
+      <p>Compare the three big numbers on each label: Total Fat, Total Carbohydrate, and Protein.</p>
+      ${legend('macro')}<div class="compare">${cards}</div><div class="fb" id="fb"></div></div>`;
+  } else if(step==='bonus'){
+    const b=m.bonus; readText=b.q;
+    const notes = m.opts.map(k=>`<li><b>${F[k].name}:</b> ${m.notes[k]}</li>`).join('');
+    body = `<div class="fb good show"><b>${F[m.best].name} is the best fuel for ${c.who.split(' the ')[0]}.</b></div>
+      <div class="card" style="margin-top:14px"><h3>Why each label did or did not fit</h3><ul style="margin:0 0 0 1.1em;padding:0">${notes}</ul></div>
+      <div class="fb info show" style="margin-top:14px"><b>Good to know:</b> ${m.learn}</div>
+      <div class="card" style="margin-top:14px"><div class="q">${b.q}</div>
+      <div class="opts">${s.bOpts.map((o,i)=>{const no=s.noB.includes(i);return `<button class="opt plain ${no?'no':''}" data-act="s2b" data-i="${i}" ${no?'disabled':''}>${esc(o.t)}</button>`;}).join('')}</div>
+      <div class="fb" id="fb"></div></div>`;
+  } else {
+    const last = s.i===s.list.length-1;
+    body = `<div class="fb good show"><b>Mission complete.</b> ${m.bonus.why}</div>
+      <p style="margin-top:14px"><button class="btn" data-act="s2next">${last?'Finish stage 2':'Next client'}</button></p>`;
+  }
+  app.innerHTML = `<h2>Stage 2: Fuel the client <small style="font-weight:400;font-size:.65em;color:var(--mute)">client ${s.i+1} of ${s.list.length}</small></h2>${backBtn(2)}${stepline}${client}${body}`;
+}
+function s2Macro(k){
+  const s=S.s2, m=s.m; s.mTry++;
+  if(k===m.need){ celebrate(); if(s.mTry===1) S.score.s2++; s.step='label'; renderS2(); say('Correct. Now pick the best label.'); }
+  else { s.noM.push(k); renderS2();
+    fb(k==='nuc' ? 'Nucleic acids store genetic information. They are in every cell but they are not the fuel here. Try again.' : `Not the best match. <b>Hint:</b> ${m.macroHint}`,'bad'); }
+}
+function s2Label(k){
+  const s=S.s2, m=s.m; s.lTry++;
+  if(k===m.best){ celebrate(); if(s.lTry===1) S.score.s2++; s.step='bonus'; renderS2(); window.scrollTo(0,0); say('Correct label.'); }
+  else { s.noL.push(k); renderS2();
+    fb(`<b>${F[k].name}:</b> ${m.notes[k]} Try another label.`,'bad'); }
+}
+function s2Bonus(i){
+  const s=S.s2, m=s.m; s.bTry++;
+  if(s.bOpts[i].ok){ celebrate(); if(s.bTry===1) S.score.s2++; s.step='done'; S.done.s2++; updateProg(); renderS2(); }
+  else { s.noB.push(i); renderS2(); fb('Not quite. Check your notes on macromolecules and try again.','bad'); }
+}
+function s2Next(){ const s=S.s2; if(s.i<s.list.length-1){s.i++;loadS2();} else renderStageEnd(2); }
+
+/* ===================== STAGE 3: LABEL DETECTIVE ===================== */
+function startS3(){
+  S.review=null;
+  S.done.s3=0; S.score.s3=0;
+  S.s3 = { list: shuffle(BANK).slice(0,8), i:0 };
+  loadS3(); updateProg();
+}
+function loadS3(){
+  const s=S.s3, q=s.list[s.i]; s.q=q; s.tries=0; s.finished=false; s.no=[];
+  if(q.type==='which') s.opts = shuffle(q.foods);
+  if(q.type==='mc') s.opts = shuffle(q.opts.map((t,i)=>({t,ok:i===q.ans})));
+  renderS3();
+}
+function renderS3(){
+  const s=S.s3, q=s.q;
+  readText = q.q;
+  const labels = `<div class="compare" style="margin-top:0">${q.foods.map(k=>`<div class="pickcard" style="border-color:var(--line)">${foodHead(k)}${labelHTML(k,{mode:'macro'})}</div>`).join('')}</div>${legend('macro')}`;
+  let ans='';
+  if(q.type==='num'){
+    ans = `<div class="numin"><input id="numAns" type="number" inputmode="decimal" aria-label="Your answer" ${s.finished?'disabled':''}><span>${q.unit}</span><button class="btn" data-act="s3num" ${s.finished?'disabled':''}>Check</button></div>`;
+  } else if(q.type==='which'){
+    ans = `<div class="opts">${s.opts.map(k=>{const no=s.no.includes(k);return `<button class="opt plain ${no?'no':''} ${s.finished&&k===q.ans?'yes':''}" data-act="s3w" data-k="${k}" ${no||s.finished?'disabled':''}>${ico(F[k].icon).replace('class="ico"','class="ico" style="width:38px;height:38px;flex:none"')}<b>${F[k].name}</b></button>`;}).join('')}</div>`;
+  } else {
+    ans = `<div class="opts">${s.opts.map((o,i)=>{const no=s.no.includes(i);return `<button class="opt plain ${no?'no':''} ${s.finished&&o.ok?'yes':''}" data-act="s3mc" data-i="${i}" ${no||s.finished?'disabled':''}>${esc(o.t)}</button>`;}).join('')}</div>`;
+  }
+  const last = s.i===s.list.length-1;
+  app.innerHTML = `
+    <h2>Stage 3: Label detective <small style="font-weight:400;font-size:.65em;color:var(--mute)">case ${s.i+1} of ${s.list.length}</small></h2>
+    ${backBtn(3)}
+    <p>Keep using the big three: Total Fat, Total Carbohydrate, and Protein. Now do some label math, and pick up a few extra facts along the way.</p>
+    ${labels}
+    <div class="card"><div class="q">${esc(q.q)}</div>${ans}
+      <div class="tools"><button class="ghost" data-act="listen">Listen</button></div>
+      <div class="fb" id="fb"></div>
+      ${s.finished?`<p style="margin-top:14px"><button class="btn" data-act="s3next">${last?'Finish stage 3':'Next case'}</button></p>`:''}
+    </div>`;
+  if(s.finished){ fb(s.msg, s.msgCls); }
+}
+function s3Finish(ok){
+  const s=S.s3,q=s.q; s.finished=true; S.done.s3++; updateProg();
+  if(ok && s.tries===1) S.score.s3++;
+  if(ok) celebrate();
+  s.msg = (ok?'<b>Correct.</b> ':'<b>Here is the answer.</b> ')+q.why+(q.note?'<br><br><b>Good to know:</b> '+q.note:''); s.msgCls = ok?'good':'info';
+  renderS3();
+}
+function s3Wrong(){ const s=S.s3,q=s.q;
+  if(q.type==='num'){ renderS3(); fb('Not yet. <b>Hint:</b> '+q.hint,'bad'); }
+  else { renderS3(); fb('Not quite. Re-read the Total Fat, Total Carbohydrate, and Protein rows and try again.','bad'); }
+}
+function s3Num(){
+  const s=S.s3,q=s.q, v=document.getElementById('numAns').value;
+  if(v==='') { fb('Type a number first.','info'); return; }
+  s.tries++;
+  if(Math.abs(parseFloat(v)-q.ans)<0.05) s3Finish(true);
+  else if(s.tries>=3) s3Finish(false);
+  else s3Wrong();
+}
+function s3Which(k){ const s=S.s3,q=s.q; s.tries++; if(k===q.ans) s3Finish(true); else { s.no.push(k); if(s.no.length>=q.foods.length-1) s3Finish(false); else s3Wrong(); } }
+function s3MC(i){ const s=S.s3; s.tries++; if(s.opts[i].ok) s3Finish(true); else { s.no.push(i); if(s.no.length>=s.opts.length-1) s3Finish(false); else s3Wrong(); } }
+function s3Next(){ const s=S.s3; if(s.i<s.list.length-1){s.i++;loadS3();} else renderStageEnd(3); }
+
+/* ===================== STAGE END & SUMMARY ===================== */
+function renderStageEnd(n){
+  const key='s'+n, sc=S.score[key], mx=S.max[key];
+  const msgs={1:'You can now read the three big numbers and use them as evidence.',2:'You matched macromolecules to what a body actually needs.',3:'You can turn label grams into Calories like a food scientist.'};
+  app.innerHTML = `<div class="card" style="text-align:center;max-width:560px;margin:20px auto">
+    <h2>Stage ${n} complete</h2>
+    <p style="font-size:2rem;font-family:Rockwell,Georgia,serif;margin:0">${sc} / ${mx}</p>
+    <p>points on the first try</p><p>${msgs[n]}</p>
+    <button class="btn" data-act="map">Back to the stage map</button></div>`;
+  window.scrollTo(0,0);
+}
+function renderSummary(){
+  const tot = S.score.s1+S.score.s2+S.score.s3, mx = S.max.s1+S.max.s2+S.max.s3;
+  const attempted = S.done.s1+S.done.s2+S.done.s3;
+  const playedMax = (S.done.s1?S.max.s1:0)+(S.done.s2?S.max.s2:0)+(S.done.s3?S.max.s3:0);
+  const pct = playedMax? Math.round(100*tot/playedMax):0;
+  let rank, rc;
+  if(!attempted){ rank='Not started yet'; rc='c-bear'; }
+  else if(pct>=90){ rank='Master of Macros'; rc='c-lifter'; }
+  else if(pct>=75){ rank='Label Reader'; rc='c-runner'; }
+  else if(pct>=55){ rank='Trail Scout'; rc='c-biker'; }
+  else { rank='Still Training'; rc='c-dog'; }
+  const row=(t,k)=>`<div class="stat"><b>${t}</b><big>${S.done[k]?S.score[k]+' / '+S.max[k]:'Not played'}</big>first-try points</div>`;
+  app.innerHTML = `
+    <div class="showteacher" role="alert">SHOW TEACHER THIS SCREEN</div>
+    <div class="rank"><div class="pic">${pic(rc)}</div><h2 style="color:#fff">${rank}</h2>
+      <p style="margin:0;color:#dcebe6">${S.name?esc(S.name)+(S.hour?' · hour '+esc(S.hour):'')+' · ':''}${attempted} of ${TOTAL} challenges finished</p></div>
+    <div class="sumgrid">
+      ${row('Stage 1: Decode','s1')}${row('Stage 2: Fuel the client','s2')}${row('Stage 3: Label detective','s3')}
+      <div class="stat"><b>Overall</b><big>${attempted?pct+'%':'--'}</big>of first-try points</div>
+    </div>
+    <div class="card"><h3>What to remember</h3>
+      <ul style="margin:0 0 0 1.1em;padding:0">
+        <li><b>Macromolecules first.</b> The biggest gram amount among Total Fat, Total Carbohydrate, and Protein tells you what the food is mostly made of.</li>
+        <li><b>Lipids</b> = long-term energy, insulation (bear, sled dog). <b>Carbohydrates</b> = quick energy (runner, racer). <b>Proteins</b> = build and repair (bodybuilder).</li>
+        <li><b>Calories:</b> fat has 9 per gram, carbohydrate and protein have 4 per gram.</li>
+        <li><b>Extra label facts you met:</b> fiber and sugars are types of carbohydrate; saturated and trans are types of fat; cholesterol comes only from animals.</li>
+      </ul></div>
+    <p style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap"><button class="btn" data-act="map">Back to the stage map</button></p>
+    <div class="hint">Your results are not saved or sent anywhere. Refreshing the page starts over.</div>`;
+  window.scrollTo(0,0);
+}
+
+
+/* ===================== LOOK BACK (read-only review of earlier questions) ===================== */
+function backBtn(n){
+  const s=S['s'+n];
+  return (s && s.i>0) ? `<div class="tools" style="margin:0 0 12px"><button class="ghost" data-act="back" data-st="${n}">&larr; Look at the previous question</button></div>` : '';
+}
+function openReview(n){ const s=S['s'+n]; S.review={stage:n, idx:s.i-1}; renderReview(); window.scrollTo(0,0); }
+function renderReview(){
+  const r=S.review, n=r.stage, s=S['s'+n], cur=s.i, total=s.list.length;
+  let body='';
+  if(n===1){
+    const key=s.list[r.idx], f=F[key], d=domMacro(f), m=MACRO[d];
+    const o={fat:f.fat,carb:f.carb,pro:f.pro};
+    const others=['fat','carb','pro'].filter(k=>k!==d).map(k=>`${fmt(o[k])} g ${MACRO[k].row.toLowerCase().replace('total ','')}`);
+    body=`<div class="row2"><div>${foodHead(key)}${labelHTML(key,{mode:'macro',state:{right:d}})}${legend('macro')}</div>
+      <div class="card"><div class="q">Which macromolecule is the ${f.name.toLowerCase()} mostly made of?</div>
+        <div class="fb good show"><b>${m.name}.</b> ${fmt(o[d])} g ${m.row.toLowerCase().replace('total ','')} beats ${others.join(' and ')}. The line with the biggest number is outlined on the label.<br><br><b>What ${m.name.toLowerCase()} does:</b> ${m.fn}</div></div></div>`;
+  } else if(n===2){
+    const m=s.list[r.idx], c=CAST[m.cast];
+    const cards=m.opts.map(k=>`<div class="pickcard ${k===m.best?'yes':''}">${foodHead(k)}${labelHTML(k,{mode:'macro'})}${k===m.best?'<b>Best choice</b>':''}</div>`).join('');
+    const notes=m.opts.map(k=>`<li><b>${F[k].name}:</b> ${m.notes[k]}</li>`).join('');
+    body=`<div class="client"><div class="pic">${pic(c.svg)}</div><div><h2>${c.who}</h2><p>${m.story}</p></div></div>
+      <div class="fb good show"><b>Needs most: ${MACRO[m.need].name}.</b> ${MACRO[m.need].fn}</div>
+      <div class="compare">${cards}</div>
+      <div class="card"><h3>Why each label did or did not fit</h3><ul style="margin:0 0 0 1.1em;padding:0">${notes}</ul></div>
+      <div class="fb info show" style="margin-top:14px"><b>Good to know:</b> ${m.learn}</div>
+      <div class="card" style="margin-top:14px"><div class="q">${m.bonus.q}</div><p><b>Answer:</b> ${esc(m.bonus.opts[0])}</p><p style="margin:0">${m.bonus.why}</p></div>`;
+  } else {
+    const q=s.list[r.idx];
+    const labels=`<div class="compare" style="margin-top:0">${q.foods.map(k=>`<div class="pickcard" style="border-color:var(--line)">${foodHead(k)}${labelHTML(k,{mode:'macro'})}</div>`).join('')}</div>${legend('macro')}`;
+    let ans = q.type==='num' ? q.ans+' '+q.unit : (q.type==='which' ? F[q.ans].name : q.opts[q.ans]);
+    body=`${labels}<div class="card"><div class="q">${esc(q.q)}</div>
+      <div class="fb good show"><b>Answer: ${esc(ans)}</b><br>${q.why}${q.note?'<br><br><b>Good to know:</b> '+q.note:''}</div></div>`;
+  }
+  const names={1:'Stage 1: Decode the label',2:'Stage 2: Fuel the client',3:'Stage 3: Label detective'};
+  app.innerHTML=`
+    <div class="fb info show" style="margin:0 0 14px"><b>Looking back.</b> You are reviewing question ${r.idx+1} of ${total}. Your score and progress are not changed.</div>
+    <h2>${names[n]} <small style="font-weight:400;font-size:.65em;color:var(--mute)">question ${r.idx+1} of ${total}</small></h2>
+    <div class="tools" style="margin:0 0 14px">
+      <button class="ghost" data-act="rvprev" ${r.idx<=0?'disabled':''}>&larr; Earlier question</button>
+      <button class="btn small" data-act="rvresume">Back to my question</button>
+    </div>
+    ${body}
+    <p style="margin-top:16px"><button class="btn" data-act="rvresume">Back to my question</button></p>`;
+}
+function resumeStage(){
+  const n=S.review.stage; S.review=null;
+  if(n===1) renderS1(); else if(n===2) renderS2(); else renderS3();
+  window.scrollTo(0,0);
+}
+
+/* ===================== EVENTS ===================== */
+document.addEventListener('click', e=>{
+  const row = e.target.closest('[data-row]');
+  if(row){ s1Row(row.dataset.row); return; }
+  const b = e.target.closest('[data-act]'); if(!b || b.disabled) return;
+  const a = b.dataset.act;
+  switch(a){
+    case 'map':
+      if(document.getElementById('nm')){ S.name=document.getElementById('nm').value.trim(); S.hour=document.getElementById('hr').value.trim(); }
+      renderMap(); window.scrollTo(0,0); break;
+    case 's1': startS1(); window.scrollTo(0,0); break;
+    case 's2': startS2(); window.scrollTo(0,0); break;
+    case 's3': startS3(); window.scrollTo(0,0); break;
+    case 's1m': s1Macro(b.dataset.k); break;
+    case 's1next': s1Next(); window.scrollTo(0,0); break;
+    case 's2m': s2Macro(b.dataset.k); break;
+    case 's2l': s2Label(b.dataset.k); break;
+    case 's2b': s2Bonus(+b.dataset.i); break;
+    case 's2next': s2Next(); window.scrollTo(0,0); break;
+    case 's3num': s3Num(); break;
+    case 's3w': s3Which(b.dataset.k); break;
+    case 's3mc': s3MC(+b.dataset.i); break;
+    case 's3next': s3Next(); window.scrollTo(0,0); break;
+    case 'back': openReview(+b.dataset.st); break;
+    case 'rvprev': if(S.review.idx>0){S.review.idx--; renderReview(); window.scrollTo(0,0);} break;
+    case 'rvresume': resumeStage(); break;
+    case 'summary': renderSummary(); break;
+    case 'listen': listen(readText); break;
+  }
+});
+document.addEventListener('keydown', e=>{
+  if((e.key==='Enter'||e.key===' ') && e.target.matches && e.target.matches('[data-row]')){ e.preventDefault(); s1Row(e.target.dataset.row); }
+  if(e.key==='Enter' && e.target.id==='numAns'){ s3Num(); }
+});
+
+/* highlight-to-define */
+const tip = document.getElementById('tip');
+function hideTip(){ tip.style.display='none'; }
+function checkSel(){
+  const sel = window.getSelection(); if(!sel || sel.rangeCount===0){ hideTip(); return; }
+  const t = sel.toString().trim().toLowerCase().replace(/[^a-z\s-]/g,'').replace(/\s+/g,' ');
+  if(!t || t.length>30){ hideTip(); return; }
+  let key = GLOSS[t]!==undefined ? t : (t.endsWith('s') && GLOSS[t.slice(0,-1)]!==undefined ? t.slice(0,-1) : null);
+  if(!key){ hideTip(); return; }
+  const r = sel.getRangeAt(0).getBoundingClientRect();
+  tip.innerHTML = '<b>'+key+'</b><br>'+GLOSS[key];
+  tip.style.display='block';
+  const w = tip.offsetWidth;
+  let left = Math.min(Math.max(8, r.left + r.width/2 - w/2), window.innerWidth - w - 8);
+  let top = r.bottom + 8; if(top + tip.offsetHeight > window.innerHeight - 8) top = Math.max(8, r.top - tip.offsetHeight - 8);
+  tip.style.left = left+'px'; tip.style.top = top+'px';
+}
+document.addEventListener('mouseup', ()=>setTimeout(checkSel,10));
+document.addEventListener('touchend', ()=>setTimeout(checkSel,350));
+document.addEventListener('mousedown', e=>{ if(!tip.contains(e.target)) hideTip(); });
+window.addEventListener('scroll', hideTip, {passive:true});
+
+
+/* ===================== CALCULATOR ===================== */
+(function(){
+  const box=document.getElementById('calc'), btn=document.getElementById('calcBtn'), disp=document.getElementById('cdisp'), exp=document.getElementById('cexp');
+  let cur='0', prev=null, op=null, fresh=true;
+  const sym={'+':'+','-':'\u2212','*':'\u00d7','/':'\u00f7'};
+  const show=()=>{ disp.textContent = cur.length>12 ? String(parseFloat(cur).toPrecision(10)) : cur; exp.textContent = (op&&prev!==null)? (fmtN(prev)+' '+sym[op]) : ''; };
+  const fmtN=n=>String(parseFloat(Number(n).toPrecision(12)));
+  function compute(a,b,o){ if(o==='+')return a+b; if(o==='-')return a-b; if(o==='*')return a*b; if(o==='/')return b===0?NaN:a/b; return b; }
+  function press(k){
+    if(/^[0-9]$/.test(k)){ if(fresh||cur==='0'||cur==='Error'){cur=k;} else if(cur.replace(/[-.]/g,'').length<12){cur+=k;} fresh=false; }
+    else if(k==='.'){ if(fresh||cur==='Error'){cur='0.';fresh=false;} else if(!cur.includes('.')) cur+='.'; }
+    else if(k==='C'){ cur='0'; prev=null; op=null; fresh=true; }
+    else if(k==='B'){ if(fresh||cur==='Error'){cur='0';} else { cur=cur.length>1?cur.slice(0,-1):'0'; if(cur==='-')cur='0'; } }
+    else if('+-*/'.includes(k)){
+      if(cur==='Error') return;
+      if(op&&prev!==null&&!fresh){ const r=compute(prev,parseFloat(cur),op); cur=isNaN(r)?'Error':fmtN(r); }
+      prev = cur==='Error'?null:parseFloat(cur); op=k; fresh=true;
+    }
+    else if(k==='='){
+      if(op&&prev!==null){ const r=compute(prev,parseFloat(cur),op); cur=isNaN(r)?'Error':fmtN(r); prev=null; op=null; fresh=true; }
+    }
+    show();
+  }
+  function setOpen(o){ box.classList.toggle('open',o); btn.setAttribute('aria-expanded',o); if(o){ box.querySelector('[data-k="1"]').focus(); } else btn.focus(); }
+  btn.addEventListener('click',()=>setOpen(!box.classList.contains('open')));
+  document.getElementById('calcClose').addEventListener('click',()=>setOpen(false));
+  document.getElementById('ckeys').addEventListener('click',e=>{ const b=e.target.closest('[data-k]'); if(b) press(b.dataset.k); });
+  box.addEventListener('keydown',e=>{
+    const k=e.key;
+    if(k==='Escape'){ setOpen(false); return; }
+    if(/^[0-9.+\-*\/]$/.test(k)){ e.preventDefault(); press(k); }
+    else if(k==='Enter'||k==='='){ e.preventDefault(); press('='); }
+    else if(k==='Backspace'){ e.preventDefault(); press('B'); }
+    else if(k==='c'||k==='C'||k==='Delete'){ e.preventDefault(); press('C'); }
+  });
+  show();
+})();
+
+renderHome(); updateProg();
+</script>
+</body>
+</html>
